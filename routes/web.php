@@ -26,5 +26,6 @@ Route::middleware(['auth:sanctum',config('jetstream.auth_session'),'verified'])-
     })->name('dashboard');
     Route::resource('roles',RoleController::class);
     Route::resource('users',UserController::class);
+    Route::get('tasks/{id}',[TaskController::class,"destroy"])->name('tasks.destroy');
     Route::resource('tasks',TaskController::class);
 });

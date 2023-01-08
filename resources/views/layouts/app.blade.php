@@ -36,6 +36,9 @@
                 {{ $slot }}
             </main>
         </div>
+        @if (isset($js))
+        {{ $js }}
+        @endif
 
         @stack('modals')
 

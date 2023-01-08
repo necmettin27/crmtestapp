@@ -45,20 +45,21 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request, [
-            'title' => 'required',   
-            'image' => 'mimes:jpg,jpeg,png,gif,JPG,JPEG,svg,SVG' 
+        $request->validate([
+            'image' => 'mimes:jpeg,png,jpg,gif,svg,JPG,JPEG,PNG',
         ]);
         try{
             $task = new Task();
             $task->title = $request->title;
             $task->description = $request->description;
             $task->status = 1;
-            if ($request->hasfile('image')) {
-                $name = $request->file('image')->getClientOriginalName();
-                $request->file('image')->store('public/images'); 
-                $task->image = $name;
+            
+            if($request->hasfile('image')){
+                $imageName = time().'.'.$request->image->extension();   
+                $request->image->move(public_path('images'), $imageName); 
+                $task->image = $imageName;
             }
+           
             $task->user_id = Auth::user()->id;
             $task->save();
             return redirect()->route('tasks.index')->with('success',"Başarıyla eklendi");
@@ -86,7 +87,8 @@ class TaskController extends Controller
      */
     public function edit($id)
     {
-        //
+        $task = Task::whereId($id)->first() ?? abort(404);
+        return view('Task.edit',compact('task'));
     }
 
     /**
@@ -98,7 +100,26 @@ class TaskController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        
+        $this->validate($request, [
+            'title' => 'required',   
+            'image' => 'mimes:jpg,jpeg,png,gif,JPG,JPEG,svg,SVG' 
+        ]);
+        try{
+            $task = Task::whereId($id)->first() ?? abort(404);
+            $task->title = $request->title;
+            $task->description = $request->description;
+            $task->status = 1;
+            if ($request->hasfile('image')) {
+                $name = $request->file('image')->getClientOriginalName();
+                $request->file('image')->store('public/images'); 
+                $task->image = $name;
+            }
+            $task->save();
+            return redirect()->route('tasks.index')->with('success',"Başarıyla eklendi");
+        }catch(\Exception $e){
+            return back()->withInput()->with('error',$e->getMessage());
+        }
     }
 
     /**
@@ -109,6 +130,7 @@ class TaskController extends Controller
      */
     public function destroy($id)
     {
-        //
+        Task::whereId($id)->delete();
+        return back()->with('success',"Başarıyla silindi");
     }
 }
